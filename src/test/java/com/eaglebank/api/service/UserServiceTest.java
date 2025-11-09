@@ -124,12 +124,11 @@ class UserServiceTest {
 
     @Test
     void getUserById_ShouldThrowForbidden_WhenUserIdDoesNotMatch() {
+        when(userRepository.findById("usr-123abc")).thenReturn(Optional.of(testUser));
         assertThatThrownBy(() -> userService.getUserById("usr-123abc", "usr-different"))
                 .isInstanceOf(ResponseStatusException.class)
                 .extracting("statusCode")
                 .isEqualTo(HttpStatus.FORBIDDEN);
-
-        verify(userRepository, never()).findById(anyString());
     }
 
     @Test
@@ -205,6 +204,8 @@ class UserServiceTest {
 
     @Test
     void updateUser_ShouldThrowForbidden_WhenUserIdDoesNotMatch() {
+        when(userRepository.findById("usr-123abc")).thenReturn(Optional.of(testUser));
+
         UpdateUserRequest request = new UpdateUserRequest("New Name", null, null, null);
 
         assertThatThrownBy(() -> userService.updateUser("usr-123abc", request, "usr-different"))
@@ -212,7 +213,7 @@ class UserServiceTest {
                 .extracting("statusCode")
                 .isEqualTo(HttpStatus.FORBIDDEN);
 
-        verify(userRepository, never()).findById(anyString());
+        verify(userRepository, never()).save(any());
     }
 
     @Test
@@ -245,12 +246,13 @@ class UserServiceTest {
 
     @Test
     void deleteUser_ShouldThrowForbidden_WhenUserIdDoesNotMatch() {
+        when(userRepository.findById("usr-123abc")).thenReturn(Optional.of(testUser));
         assertThatThrownBy(() -> userService.deleteUser("usr-123abc", "usr-different"))
                 .isInstanceOf(ResponseStatusException.class)
                 .extracting("statusCode")
                 .isEqualTo(HttpStatus.FORBIDDEN);
 
-        verify(userRepository, never()).findById(anyString());
+        verify(bankAccountRepository, never()).existsByUserId(anyString());
     }
 
     @Test
