@@ -3,6 +3,7 @@ package com.eaglebank.api.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -14,12 +15,24 @@ import java.util.Date;
 
 @Service
 public class JwtService {
+    private static final int MIN_SECRET_LENGTH = 32;
     
-    @Value("${jwt.secret:your-256-bit-secret-key-for-eagle-bank-api-please-change-in-production}")
+    @Value("${jwt.secret}")
     private String secret;
     
     @Value("${jwt.expiration-hours:24}")
     private int expirationHours;
+    
+    @PostConstruct
+    void validateSecret() {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("JWT secret must be provided and cannot be blank");
+        }
+        if (secret.length() < MIN_SECRET_LENGTH) {
+            throw new IllegalStateException("JWT secret must be at least " + MIN_SECRET_LENGTH + " characters");
+        }
+        secret = secret.trim();
+    }
     
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));

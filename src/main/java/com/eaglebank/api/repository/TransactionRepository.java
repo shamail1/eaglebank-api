@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, String> {
-    List<Transaction> findByAccountAccountNumber(String accountNumber);
+    List<Transaction> findByAccountAccountNumberOrderByCreatedTimestampDesc(String accountNumber);
     Optional<Transaction> findByIdAndAccountAccountNumber(String transactionId, String accountNumber);
 }
 

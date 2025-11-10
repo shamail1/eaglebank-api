@@ -2,6 +2,7 @@ package com.eaglebank.api.exception;
 
 import com.eaglebank.api.dto.common.BadRequestErrorResponse;
 import com.eaglebank.api.dto.common.ErrorResponse;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -44,6 +45,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex) {
         ErrorResponse response = new ErrorResponse(ex.getReason());
         return ResponseEntity.status(ex.getStatusCode()).body(response);
+    }
+    
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleOptimisticLockingFailure(OptimisticLockingFailureException ex) {
+        ErrorResponse response = new ErrorResponse("Concurrent modification detected. Please retry your request.");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
     
     @ExceptionHandler(IllegalArgumentException.class)

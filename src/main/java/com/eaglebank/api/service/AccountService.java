@@ -52,7 +52,7 @@ public class AccountService {
         account.setAccountNumber(accountNumber);
         account.setSortCode(ApplicationConstants.ACCOUNT_SORT_CODE);
         account.setName(request.name());
-        account.setAccountType(request.accountType());
+        account.setAccountType(accountType.getValue());
         account.setBalance(BigDecimal.ZERO);
         account.setCurrency(ApplicationConstants.ACCOUNT_DEFAULT_CURRENCY);
         account.setUser(user);
@@ -98,7 +98,7 @@ public class AccountService {
             if (accountType == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid account type");
             }
-            account.setAccountType(request.accountType());
+            account.setAccountType(accountType.getValue());
         }
         
         BankAccount updatedAccount = bankAccountRepository.save(account);
