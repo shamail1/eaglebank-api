@@ -83,6 +83,8 @@ class TransactionServiceTest {
                 "Test deposit"
         );
 
+        testTransaction.setType("deposit");
+
         when(accountService.getAccountEntity("01234567", "usr-123abc")).thenReturn(testAccount);
         when(userRepository.findById("usr-123abc")).thenReturn(Optional.of(testUser));
         when(transactionRepository.existsById(anyString())).thenReturn(false);
@@ -110,6 +112,8 @@ class TransactionServiceTest {
                 "Test withdrawal"
         );
 
+        testTransaction.setType("withdrawal");
+
         when(accountService.getAccountEntity("01234567", "usr-123abc")).thenReturn(testAccount);
         when(userRepository.findById("usr-123abc")).thenReturn(Optional.of(testUser));
         when(transactionRepository.existsById(anyString())).thenReturn(false);
@@ -119,7 +123,7 @@ class TransactionServiceTest {
         TransactionResponse response = transactionService.createTransaction("01234567", request, "usr-123abc");
 
         assertThat(response).isNotNull();
-        assertThat(response.type()).isEqualTo("deposit");
+        assertThat(response.type()).isEqualTo("withdrawal");
         verify(bankAccountRepository).save(any(BankAccount.class));
     }
 
