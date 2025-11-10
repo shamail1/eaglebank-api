@@ -62,5 +62,9 @@ public class BankAccount {
     @UpdateTimestamp
     @Column(name = "updated_timestamp", nullable = false)
     private Instant updatedTimestamp;
+    
+    @Version
+    @Column(nullable = false)
+    private Long version;
 }
 

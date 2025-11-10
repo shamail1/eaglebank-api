@@ -1,0 +1,3 @@
+jwt:
+  secret: test-secret-value-which-is-at-least-32-characters-long
+

@@ -192,7 +192,7 @@ class TransactionServiceTest {
     void listTransactions_ShouldReturnListOfTransactions_WhenTransactionsExist() {
         List<Transaction> transactions = Arrays.asList(testTransaction);
         when(accountService.getAccountEntity("01234567", "usr-123abc")).thenReturn(testAccount);
-        when(transactionRepository.findByAccountAccountNumber("01234567")).thenReturn(transactions);
+        when(transactionRepository.findByAccountAccountNumberOrderByCreatedTimestampDesc("01234567")).thenReturn(transactions);
 
         ListTransactionsResponse response = transactionService.listTransactions("01234567", "usr-123abc");
 
@@ -201,13 +201,13 @@ class TransactionServiceTest {
         assertThat(response.transactions().get(0).id()).isEqualTo("tan-123abc");
 
         verify(accountService).getAccountEntity("01234567", "usr-123abc");
-        verify(transactionRepository).findByAccountAccountNumber("01234567");
+        verify(transactionRepository).findByAccountAccountNumberOrderByCreatedTimestampDesc("01234567");
     }
 
     @Test
     void listTransactions_ShouldReturnEmptyList_WhenNoTransactionsExist() {
         when(accountService.getAccountEntity("01234567", "usr-123abc")).thenReturn(testAccount);
-        when(transactionRepository.findByAccountAccountNumber("01234567")).thenReturn(List.of());
+        when(transactionRepository.findByAccountAccountNumberOrderByCreatedTimestampDesc("01234567")).thenReturn(List.of());
 
         ListTransactionsResponse response = transactionService.listTransactions("01234567", "usr-123abc");
 
@@ -215,7 +215,7 @@ class TransactionServiceTest {
         assertThat(response.transactions()).isEmpty();
 
         verify(accountService).getAccountEntity("01234567", "usr-123abc");
-        verify(transactionRepository).findByAccountAccountNumber("01234567");
+        verify(transactionRepository).findByAccountAccountNumberOrderByCreatedTimestampDesc("01234567");
     }
 
     @Test

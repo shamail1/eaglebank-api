@@ -13,12 +13,14 @@ import com.eaglebank.api.repository.TransactionRepository;
 import com.eaglebank.api.repository.UserRepository;
 import com.eaglebank.api.util.EntityMapper;
 import com.eaglebank.api.util.IdGenerator;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -55,7 +57,7 @@ public class TransactionService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid transaction type");
         }
         
-        BigDecimal amount = request.amount();
+        BigDecimal amount = request.amount().setScale(2, RoundingMode.HALF_UP);
         if (transactionType == TransactionType.WITHDRAWAL) {
             if (account.getBalance().compareTo(amount) < 0) {
                 throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, 
@@ -65,8 +67,14 @@ public class TransactionService {
         } else {
             account.setBalance(account.getBalance().add(amount));
         }
-
-        bankAccountRepository.save(account);
+        
+        BankAccount persistedAccount;
+        try {
+            persistedAccount = bankAccountRepository.save(account);
+        } catch (OptimisticLockingFailureException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, 
+                    "Concurrent account update detected. Please retry the transaction.", ex);
+        }
         
         String transactionId = IdGenerator.generateTransactionId();
 
@@ -77,10 +85,10 @@ public class TransactionService {
         Transaction transaction = new Transaction();
         transaction.setId(transactionId);
         transaction.setAmount(amount);
-        transaction.setCurrency(request.currency());
-        transaction.setType(request.type());
+        transaction.setCurrency(currency.getCode());
+        transaction.setType(transactionType.getValue());
         transaction.setReference(request.reference());
-        transaction.setAccount(account);
+        transaction.setAccount(persistedAccount);
         transaction.setUser(user);
         
         Transaction savedTransaction = transactionRepository.save(transaction);
@@ -88,9 +96,10 @@ public class TransactionService {
     }
     
     public ListTransactionsResponse listTransactions(String accountNumber, String userId) {
+
         accountService.getAccountEntity(accountNumber, userId);
         
-        List<Transaction> transactions = transactionRepository.findByAccountAccountNumber(accountNumber);
+        List<Transaction> transactions = transactionRepository.findByAccountAccountNumberOrderByCreatedTimestampDesc(accountNumber);
         List<TransactionResponse> transactionResponses = transactions.stream()
                 .map(EntityMapper::toTransactionResponse)
                 .toList();
@@ -98,6 +107,7 @@ public class TransactionService {
     }
     
     public TransactionResponse getTransactionById(String accountNumber, String transactionId, String userId) {
+
         accountService.getAccountEntity(accountNumber, userId);
         
         Transaction transaction = transactionRepository.findByIdAndAccountAccountNumber(transactionId, accountNumber)
